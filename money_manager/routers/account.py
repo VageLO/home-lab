@@ -29,9 +29,9 @@ class Account(BaseModel):
 # TODO: UpdateAccount class
 class UpdateAccount(Account):
     id: int
-    title: str | None = Field(default=None, max_length=255)
-    currency: str | None = Field(default=None, max_length=10)
-    balance: float | None = Field(default=None)
+    title: str = Field(default=None, max_length=255)
+    currency: str = Field(default=None, max_length=10)
+    balance: float = Field(default=None)
 
 @router.post('/create')
 async def create_account(
@@ -71,6 +71,7 @@ async def update_account(
     session = db.session
     update_account = session.get(Accounts, account.id)
     print(update_account)
+    print(account)
 
     session.close()
     db.engine.dispose()
