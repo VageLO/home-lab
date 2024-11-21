@@ -1,8 +1,5 @@
-from typing_extensions import Annotated
-from fastapi import FastAPI, Request, Cookie, Depends, Response
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI
 from .routers import project, account
-from .dependencies import check_file, DBFile
 from .logger import setupLogger
 
 setupLogger()

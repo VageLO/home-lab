@@ -6,8 +6,13 @@ from os.path import isfile, join, splitext, abspath, basename, exists
 from fastapi import APIRouter, Response, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlmodel import create_engine, SQLModel, Session, text
-from ..dependencies import upload_process, check_file, DBFile
-from ..core.models import Accounts
+from ..dependencies import (
+    upload_process, 
+    check_file, 
+    UploadFileDep,
+    CheckFileDep,
+)
+from ..core.models import Accounts, ProjectFileScheme
 from ..core.default_project import init_default
 from ..core.triggers import (
     update_balance_on_transaction_delete,
@@ -26,7 +31,7 @@ folder_path = abspath('./money_manager/files')
 
 @router.post('/delete')
 async def delete_project_file(
-    file: Annotated[SimpleNamespace, Depends(check_file)], 
+    file: CheckFileDep, 
     response: Response,
 ):
     """
@@ -38,7 +43,7 @@ async def delete_project_file(
 
 @router.post('/create')
 async def create_project_file(
-    file: DBFile, 
+    file: ProjectFileScheme, 
     response: Response
 ):
     """
@@ -74,7 +79,7 @@ async def create_project_file(
 
 @router.post('/upload')
 async def upload_project_file(
-    file: Annotated[SimpleNamespace, Depends(upload_process)], 
+    file: UploadFileDep, 
     response: Response,
 ):
     """
@@ -87,7 +92,8 @@ async def upload_project_file(
         raise HTTPException(status_code=400, detail=f"File {file.filename} already exist.")
 
     response.set_cookie(key="project", value=file.filename)
-    return {'detail': f"File {file.filename} uploaded"}
+    response.status_code = 204
+    return
 
 @router.get('/list', response_model=List[str])
 async def get_project_files() -> List[str]:
@@ -102,14 +108,14 @@ async def get_project_files() -> List[str]:
 
 @router.post('/update')
 async def update_project_file(
-    file: Annotated[SimpleNamespace, Depends(upload_process)], 
+    file: UploadFileDep, 
     response: Response,
 ):
     """
     Rewrites existed database file with passed file.
     """
-    DBFile.name = file.filename
-    await check_file(DBFile)
+    ProjectFileScheme.name = file.filename
+    await check_file(ProjectFileScheme)
 
     try:
         saved_file = open(file.path, 'wb')
@@ -118,11 +124,12 @@ async def update_project_file(
         raise HTTPException(status_code=400, detail=err)
 
     response.set_cookie(key="project", value=file.filename)
-    return {'detail': f"File {file.filename} updated"}
+    response.status_code = 204
+    return
 
 @router.post('/download')
 async def download_project_file(
-    file: Annotated[SimpleNamespace, Depends(check_file)]
+    file: CheckFileDep,
 ):
     """
     Return existed file.
@@ -134,7 +141,7 @@ async def download_project_file(
 
 @router.post('/open')
 async def open_project(
-    file: Annotated[SimpleNamespace, Depends(check_file)], 
+    file: CheckFileDep,
     response: Response,
 ):
     """

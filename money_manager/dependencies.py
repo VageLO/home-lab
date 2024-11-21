@@ -2,7 +2,7 @@ from types import SimpleNamespace
 from os.path import exists, splitext, join, abspath
 from sqlmodel import create_engine, SQLModel, Session
 from typing_extensions import Annotated
-from pydantic import BaseModel
+from .core.models import ProjectFileScheme
 from fastapi import (
     HTTPException,
     Cookie,
@@ -11,17 +11,14 @@ from fastapi import (
     Depends,
 )
 
-class DBFile(BaseModel):
-    name: str
-
 folder_path = abspath('./money_manager/files')
 
 async def check_cookie(project: Annotated[str, Cookie()]):
     """
     Checks if project exists with given file name in cookie
     """
-    DBFile.name = project
-    file = await check_file(DBFile)
+    ProjectFileScheme.name = project
+    file = await check_file(ProjectFileScheme)
 
     return file.file_path
 
@@ -44,7 +41,7 @@ async def upload_process(file: Annotated[UploadFile, File(...)]):
 
     return SimpleNamespace(content=content, path=file_path, filename=file.filename)
 
-async def check_file(file: DBFile):
+async def check_file(file: ProjectFileScheme):
     """
     Checks project exists with given file name in json body
     """
@@ -54,3 +51,7 @@ async def check_file(file: DBFile):
         raise HTTPException(status_code=400, detail="Project not found")
 
     return SimpleNamespace(file_path=file_path, filename=file.name)
+
+CheckFileDep = Annotated[SimpleNamespace, Depends(check_file)]
+SessionDep = Annotated[Session, Depends(session)]
+UploadFileDep = Annotated[SimpleNamespace, Depends(upload_process)]
