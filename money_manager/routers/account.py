@@ -1,10 +1,6 @@
-from typing_extensions import Annotated
-from typing import Optional
-from types import SimpleNamespace
 from fastapi import APIRouter, Response, Depends, HTTPException
-from sqlmodel import SQLModel, Session
+from sqlmodel import SQLModel
 from sqlalchemy.exc import IntegrityError
-from pydantic import BaseModel, Field, validator
 from ..dependencies import SessionDep
 from ..core.models import (
     Accounts, 

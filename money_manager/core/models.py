@@ -39,6 +39,11 @@ class AccountScheme(BaseModel):
             raise ValueError('Balance must have 2 digits after dot')
         return v
 
+class CategoryScheme(BaseModel):
+    id: int = Field(default=None)
+    parent_id: int = Field(default=None)
+    title: str = Field(unique=True, max_length=255)
+
 class UpdateAccountScheme(AccountScheme):
     id: int
     title: str = Field(default=None, max_length=255)
