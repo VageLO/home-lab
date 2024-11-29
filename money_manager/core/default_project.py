@@ -1,4 +1,5 @@
 import random
+from datetime import date
 from sqlmodel import Session, SQLModel
 from ..core.models import Accounts, Categories, Transactions
 
@@ -26,7 +27,7 @@ async def init_default(session: Session):
             account_id=transaction.id, 
             category_id=shopping.id,
             transaction_type="Withdrawal",
-            date="2024-11-20",
+            date=date(2024, 11, 29),
             amount=round(random.uniform(1, 100), 2),
             description="desc",
         )

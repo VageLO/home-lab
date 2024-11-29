@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from typing_extensions import Annotated
 from os import listdir, remove
 from os.path import isfile, join, splitext, abspath, basename, exists
-from fastapi import APIRouter, Response, Depends, HTTPException
+from fastapi import APIRouter, Response, Depends
 from fastapi.responses import FileResponse
 from sqlmodel import create_engine, SQLModel, Session, text
 from ..dependencies import (
@@ -12,6 +12,7 @@ from ..dependencies import (
     UploadFileDep,
     CheckFileDep,
 )
+from ..core.error import HTTPException, makeDetail
 from ..core.models import Accounts, ProjectFileScheme
 from ..core.default_project import init_default
 from ..core.triggers import (
@@ -54,7 +55,11 @@ async def create_project_file(
     file_path = join(folder_path, file.name)
 
     if exists(file_path):
-        raise HTTPException(status_code=400, detail="Project already exist")
+        HTTPException(
+            status_code=400, 
+            detail=[makeDetail(
+                msg='Project already exist',
+            )])
 
     engine = create_engine(f"sqlite:///{file_path}") 
     SQLModel.metadata.create_all(engine)
@@ -89,7 +94,11 @@ async def upload_project_file(
         new_file = open(file.path, 'xb')
         new_file.write(file.content)
     except FileExistsError:
-        raise HTTPException(status_code=400, detail=f"File {file.filename} already exist.")
+        HTTPException(
+            status_code=400, 
+            detail=[makeDetail(
+                msg=f"File {file.filename} already exist.",
+            )])
 
     response.set_cookie(key="project", value=file.filename)
     response.status_code = 204
@@ -121,7 +130,11 @@ async def update_project_file(
         saved_file = open(file.path, 'wb')
         saved_file.write(file.content)
     except FileNotFoundError as err:
-        raise HTTPException(status_code=400, detail=err)
+        HTTPException(
+            status_code=400, 
+            detail=[makeDetail(
+                msg=err,
+            )])
 
     response.set_cookie(key="project", value=file.filename)
     response.status_code = 204

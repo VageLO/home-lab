@@ -2,9 +2,9 @@ from types import SimpleNamespace
 from os.path import exists, splitext, join, abspath
 from sqlmodel import create_engine, SQLModel, Session
 from typing_extensions import Annotated
+from .core.error import HTTPException, makeDetail
 from .core.models import ProjectFileScheme
 from fastapi import (
-    HTTPException,
     Cookie,
     UploadFile,
     File,
@@ -34,7 +34,11 @@ async def session(
 
 async def upload_process(file: Annotated[UploadFile, File(...)]):
     if splitext(file.filename)[1] != '.db':
-        raise HTTPException(status_code=409, detail="File extension is not .db")
+        HTTPException(
+            status_code=409, 
+            detail=[makeDetail(
+                msg='File extension is not .db',
+            )])
 
     file_path = join(folder_path, file.filename)
     content = await file.read()
@@ -48,7 +52,11 @@ async def check_file(file: ProjectFileScheme):
     file_path = join(folder_path, file.name)
 
     if not exists(file_path):
-        raise HTTPException(status_code=400, detail="Project not found")
+        HTTPException(
+            status_code=400, 
+            detail=[makeDetail(
+                msg='Project not found',
+            )])
 
     return SimpleNamespace(file_path=file_path, filename=file.name)
 

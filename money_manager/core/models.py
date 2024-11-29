@@ -1,13 +1,21 @@
+import enum
+from datetime import date
+from decimal import Decimal
 from typing import Optional
 from pydantic import BaseModel, validator
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, Column, Enum
+
+class TransactionStatus(str, enum.Enum):
+    Withdrawal = "Withdrawal"
+    Deposit = "Deposit"
+    Transfer = "Transfer"
 
 class Accounts(SQLModel, table=True):
     __tablename__ = 'Accounts'
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(unique=True)
     currency: str
-    balance: float = Field(default=0)
+    balance: Decimal = Field(default=0, decimal_places=2)
 
 class Categories(SQLModel, table=True):
     __tablename__ = 'Categories'
@@ -21,34 +29,33 @@ class Transactions(SQLModel, table=True):
     account_id: int = Field(foreign_key="Accounts.id")
     to_account_id: Optional[int] = Field(default=None, foreign_key="Accounts.id")
     category_id: int = Field(foreign_key="Categories.id")
-    transaction_type: str
-    date: str
-    amount: float
-    to_amount: Optional[float]
+    transaction_type: TransactionStatus = Field(sa_column=Column(Enum(TransactionStatus)))
+    date: date
+    amount: Decimal = Field(decimal_places=2)
+    to_amount: Decimal = Field(default=0, decimal_places=2)
     description: Optional[str]
 
 class AccountScheme(BaseModel):
-    id: int = Field(None)
+    id: int = Field(default=None, primary_key=True)
     title: str = Field(max_length=255)
     currency: str = Field(max_length=10)
-    balance: float = Field(0)
-
-    @validator('balance')
-    def check_two_decimal(cls, v):
-        if round(v, 2) != v:
-            raise ValueError('Balance must have 2 digits after dot')
-        return v
+    balance: Decimal = Field(default=0, decimal_places=2)
 
 class CategoryScheme(BaseModel):
-    id: int = Field(default=None)
-    parent_id: int = Field(default=None)
+    id: int = Field(default=None, primary_key=True)
+    parent_id: int = Field(default=0)
     title: str = Field(unique=True, max_length=255)
 
-class UpdateAccountScheme(AccountScheme):
-    id: int
-    title: str = Field(default=None, max_length=255)
-    currency: str = Field(default=None, max_length=10)
-    balance: float = Field(default=None)
+class TransactionScheme(BaseModel):
+    id: int = Field(default=None, primary_key=True)
+    account_id: int = Field(foreign_key="Accounts.id")
+    to_account_id: int = Field(default=None, foreign_key="Accounts.id")
+    category_id: int = Field(foreign_key="Categories.id")
+    transaction_type: TransactionStatus = Field(sa_column=Column(Enum(TransactionStatus)))
+    date: date
+    amount: Decimal = Field(decimal_places=2)
+    to_amount: Decimal = Field(default=0, decimal_places=2)
+    description: str = Field(default=None)
 
 class ProjectFileScheme(BaseModel):
     name: str
