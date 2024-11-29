@@ -48,13 +48,15 @@ async def list_transactions(
     Return list of all transactions
     """
     session = db.session
-    Account = aliased(Accounts, name="From_Account")
-    ToAccount = aliased(Accounts, name="To_Account")
+    Transaction = aliased(Transactions, name="transaction")
+    Account = aliased(Accounts, name="from_account")
+    ToAccount = aliased(Accounts, name="to_account")
+    Category = aliased(Categories, name="category")
 
-    statement = select(Transactions)
-    statement = statement.outerjoin(Account, Transactions.account_id == Account.id).add_columns(Account)
-    statement = statement.outerjoin(ToAccount, Transactions.to_account_id == ToAccount.id).add_columns(ToAccount)
-    statement = statement.outerjoin(Categories, Transactions.category_id == Categories.id).add_columns(Categories)
+    statement = select(Transaction)
+    statement = statement.outerjoin(Account, Transaction.account_id == Account.id).add_columns(Account)
+    statement = statement.outerjoin(ToAccount, Transaction.to_account_id == ToAccount.id).add_columns(ToAccount)
+    statement = statement.outerjoin(Category, Transaction.category_id == Category.id).add_columns(Category)
 
     results = session.execute(statement)
     transactions = results.mappings().all()
