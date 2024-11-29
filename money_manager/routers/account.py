@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Response, Depends
+from decimal import Decimal
 from sqlmodel import Field, select
 from sqlalchemy.exc import IntegrityError
+from fastapi import APIRouter, Response
 from ..dependencies import SessionDep
 from ..core.error import HTTPException, makeDetail
 from ..core.models import (
@@ -19,7 +20,7 @@ class AccountUpdate(AccountScheme):
     id: int = Field(primary_key=True)
     title: str = Field(default=None, max_length=255)
     currency: str = Field(default=None, max_length=10)
-    balance: float = Field(default=None)
+    balance: Decimal = Field(default=None, decimal_places=2)
 
 @router.get('/list')
 async def list_accounts(
@@ -60,7 +61,7 @@ async def create_account(
         session.add(save_account)
         session.commit()
 
-    except IntegrityError as err:
+    except IntegrityError:
         HTTPException(
             status_code=400, 
             detail=[makeDetail(
@@ -81,7 +82,6 @@ async def create_account(
 async def update_account(
     account: AccountUpdate,
     db: SessionDep,
-    response: Response,
 ):
     """
     Update data of an account.
@@ -100,13 +100,13 @@ async def update_account(
         HTTPException(
             status_code=304, 
             detail=[makeDetail(
-                msg='Nothing to change',
+                msg='Nothing to update',
             )])
 
     try:
         session.add(update_account)
         session.commit()
-    except IntegrityError as err:
+    except IntegrityError:
         HTTPException(
             status_code=400, 
             detail=[makeDetail(

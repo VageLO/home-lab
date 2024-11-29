@@ -1,19 +1,16 @@
 from typing import List
-from types import SimpleNamespace
-from typing_extensions import Annotated
 from os import listdir, remove
 from os.path import isfile, join, splitext, abspath, basename, exists
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Response
 from fastapi.responses import FileResponse
 from sqlmodel import create_engine, SQLModel, Session, text
 from ..dependencies import (
-    upload_process, 
     check_file, 
     UploadFileDep,
     CheckFileDep,
 )
 from ..core.error import HTTPException, makeDetail
-from ..core.models import Accounts, ProjectFileScheme
+from ..core.models import ProjectFileScheme
 from ..core.default_project import init_default
 from ..core.triggers import (
     update_balance_on_transaction_delete,
@@ -133,7 +130,7 @@ async def update_project_file(
         HTTPException(
             status_code=400, 
             detail=[makeDetail(
-                msg=err,
+                msg=str(err),
             )])
 
     response.set_cookie(key="project", value=file.filename)

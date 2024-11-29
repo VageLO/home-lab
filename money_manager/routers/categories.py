@@ -73,7 +73,6 @@ async def create_category(
 async def update_category(
     category: CategoryUpdate,
     db: SessionDep,
-    response: Response,
 ):
     """
     Update data of a category.
@@ -92,13 +91,13 @@ async def update_category(
         HTTPException(
             status_code=304, 
             detail=[makeDetail(
-                msg='Nothing to change',
+                msg='Nothing to update',
             )])
 
     try:
         session.add(update_category)
         session.commit()
-    except IntegrityError as err:
+    except IntegrityError:
         HTTPException(
             status_code=400, 
             detail=[makeDetail(

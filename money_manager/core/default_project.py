@@ -1,6 +1,6 @@
 import random
 from datetime import date
-from sqlmodel import Session, SQLModel
+from sqlmodel import Session
 from ..core.models import Accounts, Categories, Transactions
 
 async def init_default(session: Session):
