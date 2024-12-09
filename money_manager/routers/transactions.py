@@ -1,9 +1,9 @@
-import json
-from typing import List
+from typing import List, Optional
 import datetime
 from decimal import Decimal
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, Query
 from sqlalchemy.orm import aliased
+from sqlalchemy import and_
 from sqlmodel import (
     Field,
     Column,
@@ -12,6 +12,7 @@ from sqlmodel import (
 )
 from ..dependencies import SessionDep
 from ..core.error import HTTPException, makeDetail
+from ..core.utils import checkIfExist
 from ..core.models import (
     Accounts,
     Categories,
@@ -43,22 +44,45 @@ class TransactionUpdate(TransactionScheme):
 async def list_transactions(
     db: SessionDep,
     response: Response,
+    account_id: Optional[int] = Query(None, title="list transactions by account"),
+    category_id: Optional[int] = Query(None, title="list transactions by category"),
 ):
     """
-    Return list of all transactions
+    Return list of transactions:
+        - all
+        - by account_id
+        - by category_id
     """
     session = db.session
+
     Transaction = aliased(Transactions, name="transaction")
     Account = aliased(Accounts, name="from_account")
     ToAccount = aliased(Accounts, name="to_account")
     Category = aliased(Categories, name="category")
 
-    statement = select(Transaction)
-    statement = statement.outerjoin(Account, Transaction.account_id == Account.id).add_columns(Account)
-    statement = statement.outerjoin(ToAccount, Transaction.to_account_id == ToAccount.id).add_columns(ToAccount)
-    statement = statement.outerjoin(Category, Transaction.category_id == Category.id).add_columns(Category)
+    query = select(Transaction)
 
-    results = session.execute(statement)
+    if account_id is not None or category_id is not None:
+
+        filter = []
+
+        if account_id:
+            checkIfExist(session, Accounts, account_id)
+            filter.append(Transaction.account_id == account_id)
+
+        if category_id:
+            checkIfExist(session, Categories, category_id)
+            filter.append(Transaction.category_id == category_id)
+
+        query = query.outerjoin(Account, Transaction.account_id == Account.id).where(and_(*filter)).add_columns(Account)
+
+    else:
+        query = query.outerjoin(Account, Transaction.account_id == Account.id).add_columns(Account)
+
+    query = query.outerjoin(ToAccount, Transaction.to_account_id == ToAccount.id).add_columns(ToAccount)
+    query = query.outerjoin(Category, Transaction.category_id == Category.id).add_columns(Category)
+
+    results = session.execute(query)
     transactions = results.mappings().all()
     
     session.close()
