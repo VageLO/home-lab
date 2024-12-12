@@ -77,20 +77,20 @@ class Transactions(SQLModel, table=True):
         })
 
 class AccountScheme(BaseModel):
-    id: int = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     title: str = Field(max_length=255)
     currency: str = Field(max_length=10)
     balance: Decimal = Field(default=0, decimal_places=2)
 
 class CategoryScheme(BaseModel):
-    id: int = Field(default=None, primary_key=True)
-    parent_id: int = Field(default=0)
+    id: int | None = Field(default=None, primary_key=True)
+    parent_id: int | None = Field(default=None)
     title: str = Field(unique=True, max_length=255)
 
 class TransactionScheme(BaseModel):
     id: int = Field(default=None, primary_key=True)
     account_id: int = Field(foreign_key="Accounts.id")
-    to_account_id: int = Field(default=None, foreign_key="Accounts.id")
+    to_account_id: Optional[int] = Field(default=None, foreign_key="Accounts.id")
     category_id: int = Field(foreign_key="Categories.id")
     transaction_type: TransactionStatus = Field(sa_column=Column(Enum(TransactionStatus)))
     date: date
@@ -116,7 +116,7 @@ def update_attributes(source, target) -> bool:
         source_value = getattr(source, field)
         target_value = getattr(target, field)
 
-        if source_value == None or source_value == target_value:
+        if source_value == target_value:
             continue
 
         setattr(target, field, source_value)

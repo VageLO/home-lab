@@ -31,7 +31,7 @@ router = APIRouter(
 class TransactionUpdate(TransactionScheme):
     id: int = Field(primary_key=True)
     account_id: int = Field(default=None, foreign_key="Accounts.id")
-    to_account_id: int = Field(default=None, foreign_key="Accounts.id")
+    to_account_id: int | None  = Field(default=None, foreign_key="Accounts.id")
     category_id: int = Field(default=None, foreign_key="Accounts.id")
     transaction_type: TransactionStatus = Field(
         default=None, 
@@ -117,11 +117,25 @@ async def create_transaction(
 
     session.refresh(save_transaction)
 
+    Transaction = aliased(Transactions, name="transaction")
+    Account = aliased(Accounts, name="from_account")
+    ToAccount = aliased(Accounts, name="to_account")
+    Category = aliased(Categories, name="category")
+
+    query = select(Transaction).where(Transaction.id == save_transaction.id)
+
+    query = query.outerjoin(Account, Transaction.account_id == Account.id).add_columns(Account)
+    query = query.outerjoin(ToAccount, Transaction.to_account_id == ToAccount.id).add_columns(ToAccount)
+    query = query.outerjoin(Category, Transaction.category_id == Category.id).add_columns(Category)
+
+    results = session.execute(query)
+    new_transaction = results.mappings().first()
+
     session.close()
     db.engine.dispose()
 
     response.status_code = 201
-    return save_transaction
+    return new_transaction
 
 @router.post('/update')
 async def update_transaction(
@@ -153,12 +167,26 @@ async def update_transaction(
 
     session.refresh(update_transaction)
 
+    Transaction = aliased(Transactions, name="transaction")
+    Account = aliased(Accounts, name="from_account")
+    ToAccount = aliased(Accounts, name="to_account")
+    Category = aliased(Categories, name="category")
+
+    query = select(Transaction).where(Transaction.id == update_transaction.id)
+
+    query = query.outerjoin(Account, Transaction.account_id == Account.id).add_columns(Account)
+    query = query.outerjoin(ToAccount, Transaction.to_account_id == ToAccount.id).add_columns(ToAccount)
+    query = query.outerjoin(Category, Transaction.category_id == Category.id).add_columns(Category)
+
+    results = session.execute(query)
+    updated_transaction = results.mappings().first()
+
     session.close()
     db.engine.dispose()
 
-    return update_transaction
+    return updated_transaction
 
-@router.get('/delete')
+@router.post('/delete')
 async def delete_transactions(
     ids: List[int],
     db: SessionDep,
