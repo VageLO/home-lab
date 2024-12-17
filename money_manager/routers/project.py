@@ -69,7 +69,7 @@ async def create_project_file(
     session.execute(text(update_to_account_balance))
 
     # TODO: remove on production
-    await init_default(session)
+    # await init_default(session)
 
     session.commit()
     session.close()

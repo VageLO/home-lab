@@ -46,6 +46,17 @@ class Categories(SQLModel, table=True):
             "foreign_keys": "[Transactions.category_id]",
         })
 
+class Tags(SQLModel, table=True):
+    __tablename__ = 'Tags'
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str = Field(unique=True)
+
+    transactions: List["Transactions"] = Relationship(
+        back_populates="tags",
+        sa_relationship_kwargs = {
+            "foreign_keys": "[Transactions.tag_id]",
+        })
+
 class Transactions(SQLModel, table=True):
     __tablename__ = 'Transactions'
 
@@ -53,6 +64,7 @@ class Transactions(SQLModel, table=True):
     account_id: int = Field(foreign_key="Accounts.id")
     to_account_id: Optional[int] = Field(default=None, foreign_key="Accounts.id")
     category_id: int = Field(foreign_key="Categories.id")
+    tag_id: Optional[int] = Field(default=None, foreign_key="Tags.id")
 
     transaction_type: TransactionStatus = Field(sa_column=Column(Enum(TransactionStatus)))
     date: date
@@ -75,6 +87,11 @@ class Transactions(SQLModel, table=True):
         sa_relationship_kwargs = {
             "foreign_keys": "[Transactions.category_id]",
         })
+    tags: Optional[Tags] = Relationship(
+        back_populates="transactions",
+        sa_relationship_kwargs = {
+            "foreign_keys": "[Transactions.tag_id]",
+        })
 
 class AccountScheme(BaseModel):
     id: int | None = Field(default=None, primary_key=True)
@@ -87,11 +104,17 @@ class CategoryScheme(BaseModel):
     parent_id: int | None = Field(default=None)
     title: str = Field(unique=True, max_length=255)
 
+class TagScheme(BaseModel):
+    id: int | None = Field(default=None, primary_key=True)
+    title: str = Field(unique=True, max_length=255)
+
 class TransactionScheme(BaseModel):
     id: int = Field(default=None, primary_key=True)
     account_id: int = Field(foreign_key="Accounts.id")
     to_account_id: Optional[int] = Field(default=None, foreign_key="Accounts.id")
     category_id: int = Field(foreign_key="Categories.id")
+    tag_id: Optional[int] = Field(default=None, foreign_key="Tags.id")
+
     transaction_type: TransactionStatus = Field(sa_column=Column(Enum(TransactionStatus)))
     date: date
     amount: Decimal = Field(decimal_places=2)

@@ -16,6 +16,7 @@ from ..core.utils import checkIfExist
 from ..core.models import (
     Accounts,
     Categories,
+    Tags,
     TransactionStatus,
     Transactions,
     TransactionScheme, 
@@ -32,7 +33,9 @@ class TransactionUpdate(TransactionScheme):
     id: int = Field(primary_key=True)
     account_id: int = Field(default=None, foreign_key="Accounts.id")
     to_account_id: int | None  = Field(default=None, foreign_key="Accounts.id")
-    category_id: int = Field(default=None, foreign_key="Accounts.id")
+    category_id: int = Field(default=None, foreign_key="Categories.id")
+    tag_id: int | None  = Field(default=None, foreign_key="Tags.id")
+
     transaction_type: TransactionStatus = Field(
         default=None, 
         sa_column=Column(Enum(TransactionStatus)))
@@ -46,12 +49,14 @@ async def list_transactions(
     response: Response,
     account_id: Optional[int] = Query(None, title="list transactions by account"),
     category_id: Optional[int] = Query(None, title="list transactions by category"),
+    tag_id: Optional[int] = Query(None, title="list transactions by tag"),
 ):
     """
     Return list of transactions:
         - all
         - by account_id
         - by category_id
+        - by tag_id
     """
     session = db.session
 
@@ -59,10 +64,13 @@ async def list_transactions(
     Account = aliased(Accounts, name="from_account")
     ToAccount = aliased(Accounts, name="to_account")
     Category = aliased(Categories, name="category")
+    Tag = aliased(Tags, name="tag")
 
     query = select(Transaction)
 
-    if account_id is not None or category_id is not None:
+    if (account_id is not None or
+        category_id is not None or
+        tag_id is not None):
 
         filter = []
 
@@ -74,13 +82,18 @@ async def list_transactions(
             checkIfExist(session, Categories, category_id)
             filter.append(Transaction.category_id == category_id)
 
-        query = query.outerjoin(Account, Transaction.account_id == Account.id).where(and_(*filter)).add_columns(Account)
+        if tag_id:
+            checkIfExist(session, Tags, tag_id)
+            filter.append(Transaction.tag_id == tag_id)
+
+        query = query.outerjoin(Account, Transaction.account_id == Account.id).where(and_(*filter)).order_by(Transaction.date.desc()).add_columns(Account)
 
     else:
-        query = query.outerjoin(Account, Transaction.account_id == Account.id).add_columns(Account)
+        query = query.outerjoin(Account, Transaction.account_id == Account.id).order_by(Transaction.date.desc()).add_columns(Account)
 
     query = query.outerjoin(ToAccount, Transaction.to_account_id == ToAccount.id).add_columns(ToAccount)
     query = query.outerjoin(Category, Transaction.category_id == Category.id).add_columns(Category)
+    query = query.outerjoin(Tag, Transaction.tag_id == Tag.id).add_columns(Tag)
 
     results = session.execute(query)
     transactions = results.mappings().all()
@@ -105,6 +118,7 @@ async def create_transaction(
         account_id=transaction.account_id,
         to_account_id=transaction.to_account_id,
         category_id=transaction.category_id,
+        tag_id=transaction.tag_id,
         transaction_type=transaction.transaction_type,
         date=transaction.date,
         amount=transaction.amount,
@@ -121,12 +135,14 @@ async def create_transaction(
     Account = aliased(Accounts, name="from_account")
     ToAccount = aliased(Accounts, name="to_account")
     Category = aliased(Categories, name="category")
+    Tag = aliased(Tags, name="tag")
 
     query = select(Transaction).where(Transaction.id == save_transaction.id)
 
     query = query.outerjoin(Account, Transaction.account_id == Account.id).add_columns(Account)
     query = query.outerjoin(ToAccount, Transaction.to_account_id == ToAccount.id).add_columns(ToAccount)
     query = query.outerjoin(Category, Transaction.category_id == Category.id).add_columns(Category)
+    query = query.outerjoin(Tag, Transaction.tag_id == Tag.id).add_columns(Tag)
 
     results = session.execute(query)
     new_transaction = results.mappings().first()
@@ -171,12 +187,14 @@ async def update_transaction(
     Account = aliased(Accounts, name="from_account")
     ToAccount = aliased(Accounts, name="to_account")
     Category = aliased(Categories, name="category")
+    Tag = aliased(Tags, name="tag")
 
     query = select(Transaction).where(Transaction.id == update_transaction.id)
 
     query = query.outerjoin(Account, Transaction.account_id == Account.id).add_columns(Account)
     query = query.outerjoin(ToAccount, Transaction.to_account_id == ToAccount.id).add_columns(ToAccount)
     query = query.outerjoin(Category, Transaction.category_id == Category.id).add_columns(Category)
+    query = query.outerjoin(Tag, Transaction.tag_id == Tag.id).add_columns(Tag)
 
     results = session.execute(query)
     updated_transaction = results.mappings().first()
