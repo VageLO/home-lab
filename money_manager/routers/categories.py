@@ -27,7 +27,7 @@ async def list_categories(
     Return list of all categories
     """
     session = db.session
-    statement = select(Categories)
+    statement = select(Categories).order_by(Categories.title.asc())
     results = session.exec(statement) 
     categories = results.all()
     

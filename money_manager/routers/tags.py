@@ -27,7 +27,7 @@ async def list_tags(
     Return list of all tags
     """
     session = db.session
-    statement = select(Tags)
+    statement = select(Tags).order_by(Tags.title.asc())
     results = session.exec(statement) 
     tags = results.all()
     

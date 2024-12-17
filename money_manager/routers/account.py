@@ -31,7 +31,7 @@ async def list_accounts(
     Return list of all accounts
     """
     session = db.session
-    statement = select(Accounts)
+    statement = select(Accounts).order_by(Accounts.title.asc())
     results = session.exec(statement) 
     accounts = results.all()
     
