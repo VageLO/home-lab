@@ -89,7 +89,7 @@ async def update_category(
 
     if not update_attributes(category, update_category):
         HTTPException(
-            status_code=304, 
+            status_code=404, 
             detail=[makeDetail(
                 msg='Nothing to update',
             )])

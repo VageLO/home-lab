@@ -19,8 +19,8 @@ class TransactionStatus(str, enum.Enum):
 class Accounts(SQLModel, table=True):
     __tablename__ = 'Accounts'
     id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(unique=True)
-    currency: str
+    title: str = Field(unique=True, max_length=255)
+    currency: str = Field(default=None, max_length=255)
     balance: Decimal = Field(default=0, decimal_places=2)
 
     transactions: List["Transactions"] = Relationship(
@@ -38,7 +38,7 @@ class Categories(SQLModel, table=True):
     __tablename__ = 'Categories'
     id: Optional[int] = Field(default=None, primary_key=True)
     parent_id: Optional[int]
-    title: str = Field(unique=True)
+    title: str = Field(unique=True, max_length=255)
 
     transactions: List["Transactions"] = Relationship(
         back_populates="category",
@@ -49,7 +49,7 @@ class Categories(SQLModel, table=True):
 class Tags(SQLModel, table=True):
     __tablename__ = 'Tags'
     id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(unique=True)
+    title: str = Field(unique=True, max_length=255)
 
     transactions: List["Transactions"] = Relationship(
         back_populates="tags",
@@ -68,9 +68,9 @@ class Transactions(SQLModel, table=True):
 
     transaction_type: TransactionStatus = Field(sa_column=Column(Enum(TransactionStatus)))
     date: date
-    amount: Decimal = Field(decimal_places=2)
-    to_amount: Decimal = Field(default=0, decimal_places=2)
-    description: Optional[str]
+    amount: Decimal = Field(ge=0, decimal_places=2)
+    to_amount: Decimal = Field(default=0, ge=0, decimal_places=2)
+    description: Optional[str] = Field(default=None, max_length=255)
 
     transactions: Optional[Accounts] = Relationship(
         back_populates="transactions",
@@ -95,18 +95,18 @@ class Transactions(SQLModel, table=True):
 
 class AccountScheme(BaseModel):
     id: int | None = Field(default=None, primary_key=True)
-    title: str = Field(max_length=255)
-    currency: str = Field(max_length=10)
+    title: str = Field(min_length=1, unique=True, max_length=255)
+    currency: str = Field(min_length=1, max_length=10)
     balance: Decimal = Field(default=0, decimal_places=2)
 
 class CategoryScheme(BaseModel):
     id: int | None = Field(default=None, primary_key=True)
     parent_id: int | None = Field(default=None)
-    title: str = Field(unique=True, max_length=255)
+    title: str = Field(min_length=1, unique=True, max_length=255)
 
 class TagScheme(BaseModel):
     id: int | None = Field(default=None, primary_key=True)
-    title: str = Field(unique=True, max_length=255)
+    title: str = Field(min_length=1, unique=True, max_length=255)
 
 class TransactionScheme(BaseModel):
     id: int = Field(default=None, primary_key=True)
@@ -117,9 +117,9 @@ class TransactionScheme(BaseModel):
 
     transaction_type: TransactionStatus = Field(sa_column=Column(Enum(TransactionStatus)))
     date: date
-    amount: Decimal = Field(decimal_places=2)
-    to_amount: Decimal = Field(default=0, decimal_places=2)
-    description: str = Field(default=None)
+    amount: Decimal = Field(ge=0, decimal_places=2)
+    to_amount: Decimal = Field(default=0, ge=0, decimal_places=2)
+    description: str = Field(default=None, max_length=255)
 
 class ProjectFileScheme(BaseModel):
     name: str

@@ -89,7 +89,7 @@ async def update_tag(
 
     if not update_attributes(tag, update_tag):
         HTTPException(
-            status_code=304, 
+            status_code=404, 
             detail=[makeDetail(
                 msg='Nothing to update',
             )])

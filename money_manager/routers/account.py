@@ -18,8 +18,8 @@ router = APIRouter(
 
 class AccountUpdate(AccountScheme):
     id: int = Field(primary_key=True)
-    title: str = Field(default=None, max_length=255)
-    currency: str = Field(default=None, max_length=10)
+    title: str | None = Field(default=None, min_length=1, max_length=255)
+    currency: str = Field(default=None, min_length=1, max_length=10)
     balance: Decimal = Field(default=None, decimal_places=2)
 
 @router.get('/list')
@@ -98,7 +98,7 @@ async def update_account(
 
     if not update_attributes(account, update_account):
         HTTPException(
-            status_code=304, 
+            status_code=404, 
             detail=[makeDetail(
                 msg='Nothing to update',
             )])

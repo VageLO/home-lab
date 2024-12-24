@@ -40,8 +40,8 @@ class TransactionUpdate(TransactionScheme):
         default=None, 
         sa_column=Column(Enum(TransactionStatus)))
     date: datetime.date = Field(default=None)
-    amount: Decimal = Field(default=None, decimal_places=2)
-    to_amount: Decimal = Field(default=None, decimal_places=2)
+    amount: Decimal = Field(default=None, ge=0, decimal_places=2)
+    to_amount: Decimal = Field(default=None, ge=0, decimal_places=2)
 
 @router.get('/list')
 async def list_transactions(
@@ -173,7 +173,7 @@ async def update_transaction(
 
     if not update_attributes(transaction, update_transaction):
         HTTPException(
-            status_code=304,
+            status_code=404,
             detail=[makeDetail(
                 msg='Nothing to update',
             )])
