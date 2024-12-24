@@ -1,6 +1,11 @@
 FROM python:3.12
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 WORKDIR /api
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-COPY ./ .
-CMD ["fastapi", "run", "./main.py"]
+
+COPY . .
+
+RUN uv sync --frozen --no-cache
+
+CMD ["/api/.venv/bin/fastapi", "run", "/api/main.py"]
