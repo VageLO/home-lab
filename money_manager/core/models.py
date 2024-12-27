@@ -24,6 +24,7 @@ class Accounts(SQLModel, table=True):
     balance: Decimal = Field(default=0, decimal_places=2)
 
     transactions: List["Transactions"] = Relationship(
+        cascade_delete=True,
         back_populates="transactions",
         sa_relationship_kwargs = {
             "foreign_keys": "[Transactions.account_id]",
@@ -41,6 +42,7 @@ class Categories(SQLModel, table=True):
     title: str = Field(unique=True, max_length=255)
 
     transactions: List["Transactions"] = Relationship(
+        cascade_delete=True,
         back_populates="category",
         sa_relationship_kwargs = {
             "foreign_keys": "[Transactions.category_id]",
@@ -61,10 +63,10 @@ class Transactions(SQLModel, table=True):
     __tablename__ = 'Transactions'
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    account_id: int = Field(foreign_key="Accounts.id")
-    to_account_id: Optional[int] = Field(default=None, foreign_key="Accounts.id")
-    category_id: int = Field(foreign_key="Categories.id")
-    tag_id: Optional[int] = Field(default=None, foreign_key="Tags.id")
+    account_id: int = Field(foreign_key="Accounts.id", ondelete="CASCADE")
+    to_account_id: Optional[int] = Field(default=None, foreign_key="Accounts.id", ondelete="SET NULL")
+    category_id: int = Field(foreign_key="Categories.id", ondelete="CASCADE")
+    tag_id: Optional[int] = Field(default=None, foreign_key="Tags.id", ondelete="SET NULL")
 
     transaction_type: TransactionStatus = Field(sa_column=Column(Enum(TransactionStatus)))
     date: date

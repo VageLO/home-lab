@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 from os.path import exists, splitext, join, abspath
-from sqlmodel import create_engine, SQLModel, Session
+from sqlmodel import create_engine, Session, text
 from typing_extensions import Annotated
 from .core.error import HTTPException, makeDetail
 from .core.models import ProjectFileScheme
@@ -29,6 +29,10 @@ async def session(
     Create session from database file (project).
     """
     engine = create_engine(f"sqlite:///{file}") 
+
+    with engine.connect() as connection:
+        connection.execute(text("PRAGMA foreign_keys=ON"))
+
     session = Session(engine)
     return SimpleNamespace(session=session, engine=engine)
 
