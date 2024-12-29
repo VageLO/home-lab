@@ -31,10 +31,10 @@ router = APIRouter(
 
 class TransactionUpdate(TransactionScheme):
     id: int = Field(primary_key=True)
-    account_id: int = Field(default=None, foreign_key="Accounts.id")
-    to_account_id: int | None  = Field(default=None, foreign_key="Accounts.id")
-    category_id: int = Field(default=None, foreign_key="Categories.id")
-    tag_id: int | None  = Field(default=None, foreign_key="Tags.id")
+    account_id: int = Field(default=None, gt=0, foreign_key="Accounts.id")
+    to_account_id: int | None  = Field(default=None, gt=0, foreign_key="Accounts.id")
+    category_id: int = Field(default=None, gt=0, foreign_key="Categories.id")
+    tag_id: int | None = Field(default=None, gt=0, foreign_key="Tags.id")
 
     transaction_type: TransactionStatus = Field(
         default=None, 

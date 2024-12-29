@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from os import getenv, makedirs
 from os.path import exists, splitext, join, abspath
 from sqlmodel import create_engine, Session, text
 from typing_extensions import Annotated
@@ -11,7 +12,11 @@ from fastapi import (
     Depends,
 )
 
-folder_path = abspath('./money_manager/files')
+folder_path = getenv('PROJECT_FOLDER', abspath('./money_manager/projects'))
+
+def check_project_folder():
+    if not exists(folder_path):
+        makedirs(folder_path)
 
 async def check_cookie(project: Annotated[str, Cookie()]):
     """

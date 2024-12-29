@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from .dependencies import check_project_folder
 from .routers import (
     project,
     account,
@@ -11,7 +12,7 @@ from .logger import setupLogger
 
 setupLogger()
 
-app = FastAPI()
+app = FastAPI(dependencies=[Depends(check_project_folder)])
 
 app.include_router(project.router)
 app.include_router(account.router)

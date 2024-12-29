@@ -1,5 +1,5 @@
 from typing import List
-from os import listdir, remove
+from os import listdir, remove, getenv
 from os.path import isfile, join, splitext, abspath, basename, exists
 from fastapi import APIRouter, Response
 from fastapi.responses import FileResponse
@@ -25,8 +25,6 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-folder_path = abspath('./money_manager/files')
-
 @router.post('/delete')
 async def delete_project_file(
     file: CheckFileDep, 
@@ -47,6 +45,7 @@ async def create_project_file(
     """
     Create database file (project) in folder. Require filename without extension
     """
+    folder_path = getenv('PROJECT_FOLDER', 'project')
     filename = splitext(basename(file.name))[0]
     file.name = f'{filename}.db'
     file_path = join(folder_path, file.name)
@@ -106,6 +105,7 @@ async def get_project_files() -> List[str]:
     """
     Return list of all database files in folder.
     """
+    folder_path = getenv('PROJECT_FOLDER', abspath('./money_manager/projects'))
     return [
         f for f in listdir(folder_path) 
         if isfile(join(folder_path, f))

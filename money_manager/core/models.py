@@ -30,6 +30,7 @@ class Accounts(SQLModel, table=True):
             "foreign_keys": "[Transactions.account_id]",
         })
     to_transactions: List["Transactions"] = Relationship(
+        cascade_delete=True,
         back_populates="to_transactions",
         sa_relationship_kwargs = {
             "foreign_keys": "[Transactions.to_account_id]",
@@ -63,10 +64,10 @@ class Transactions(SQLModel, table=True):
     __tablename__ = 'Transactions'
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    account_id: int = Field(foreign_key="Accounts.id", ondelete="CASCADE")
-    to_account_id: Optional[int] = Field(default=None, foreign_key="Accounts.id", ondelete="SET NULL")
-    category_id: int = Field(foreign_key="Categories.id", ondelete="CASCADE")
-    tag_id: Optional[int] = Field(default=None, foreign_key="Tags.id", ondelete="SET NULL")
+    account_id: int = Field(gt=0, foreign_key="Accounts.id", ondelete="CASCADE")
+    to_account_id: Optional[int] = Field(default=None, gt=0, foreign_key="Accounts.id", ondelete="CASCADE")
+    category_id: int = Field(foreign_key="Categories.id", gt=0, ondelete="CASCADE")
+    tag_id: Optional[int] = Field(default=None, gt=0, foreign_key="Tags.id", ondelete="SET NULL")
 
     transaction_type: TransactionStatus = Field(sa_column=Column(Enum(TransactionStatus)))
     date: date
@@ -112,10 +113,10 @@ class TagScheme(BaseModel):
 
 class TransactionScheme(BaseModel):
     id: int = Field(default=None, primary_key=True)
-    account_id: int = Field(foreign_key="Accounts.id")
-    to_account_id: Optional[int] = Field(default=None, foreign_key="Accounts.id")
-    category_id: int = Field(foreign_key="Categories.id")
-    tag_id: Optional[int] = Field(default=None, foreign_key="Tags.id")
+    account_id: int = Field(gt=0, foreign_key="Accounts.id")
+    to_account_id: Optional[int] = Field(default=None, gt=0, foreign_key="Accounts.id")
+    category_id: int = Field(gt=0, foreign_key="Categories.id")
+    tag_id: Optional[int] = Field(default=None, gt=0, foreign_key="Tags.id")
 
     transaction_type: TransactionStatus = Field(sa_column=Column(Enum(TransactionStatus)))
     date: date
