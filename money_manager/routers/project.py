@@ -45,7 +45,7 @@ async def create_project_file(
     """
     Create database file (project) in folder. Require filename without extension
     """
-    folder_path = getenv('PROJECT_FOLDER', 'project')
+    folder_path = getenv('PROJECT_FOLDER', './money_manager/projects')
     filename = splitext(basename(file.name))[0]
     file.name = f'{filename}.db'
     file_path = join(folder_path, file.name)
