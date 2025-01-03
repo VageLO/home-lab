@@ -50,6 +50,8 @@ async def list_transactions(
     account_id: Optional[int] = Query(None, title="list transactions by account"),
     category_id: Optional[int] = Query(None, title="list transactions by category"),
     tag_id: Optional[int] = Query(None, title="list transactions by tag"),
+    year: Optional[int] = Query(None, title="list transactions by year"),
+    month: Optional[str] = Query(None, title="list transactions by month"),
 ):
     """
     Return list of transactions:
@@ -57,6 +59,8 @@ async def list_transactions(
         - by account_id
         - by category_id
         - by tag_id
+        - by month
+        - by year
     """
     session = db.session
 
@@ -70,7 +74,9 @@ async def list_transactions(
 
     if (account_id is not None or
         category_id is not None or
-        tag_id is not None):
+        tag_id is not None or
+        month is not None or
+        year is not None):
 
         filter = []
 
@@ -85,6 +91,23 @@ async def list_transactions(
         if tag_id:
             checkIfExist(session, Tags, tag_id)
             filter.append(Transaction.tag_id == tag_id)
+
+        if year:
+            start_of_year = datetime.date(year, 1, 1)
+            end_of_year = datetime.date(year, 12, 31)
+            filter.append(Transaction.date >= start_of_year)
+            filter.append(Transaction.date <= end_of_year)
+
+        if month:
+            year, month_num = map(int, month.split('-'))
+
+            start_of_month = datetime.date(year, month_num, 1)
+            next_month = month_num + 1 if month_num < 12 else 1
+            next_year = year if month_num < 12 else year + 1
+            end_of_month = datetime.date(next_year, next_month, 1)
+
+            filter.append(Transaction.date >= start_of_month)
+            filter.append(Transaction.date < end_of_month)
 
         query = query.outerjoin(Account, Transaction.account_id == Account.id).where(and_(*filter)).order_by(Transaction.date.desc()).add_columns(Account)
 
