@@ -1,0 +1,41 @@
+{% extends "basic_index.html" %}
+{% block sidebar %}
+<ul class="space-y-2">
+    {% for account in accounts %}
+    <li><a class="block p-2 dark:hover:text-zinc-900 hover:bg-zinc-200 rounded">{{ account.title }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}
+
+{% block content %}
+<table class="min-w-full text-zinc-900 dark:text-white border border-gray-200">
+    <thead>
+        <tr class="dark:bg-zinc-900 bg-zinc-400 border uppercase text-md leading-normal">
+            <th class="py-3 px-6 text-center">Date</th>
+            <th class="py-3 px-6 text-center">Account</th>
+            <th class="py-3 px-6 text-center">To Account</th>
+            <th class="py-3 px-6 text-left">Category</th>
+            <th class="py-3 px-6 text-center">Tag</th>
+            <th class="py-3 px-6 text-center">Type</th>
+            <th class="py-3 px-6 text-center">Amount</th>
+            <th class="py-3 px-6 text-center">To Amount</th>
+            <th class="py-3 px-6 text-left">Description</th>
+        </tr>
+    </thead>
+    <tbody class="dark:text-white text-zinc-900 text-md font-light">
+        {% for item in transactions %}
+        <tr class="border-b border-gray-200 dark:hover:text-zinc-900 dark:hover:bg-slate-200 hover:bg-zinc-200">
+            <td class="py-3 px-6 text-center whitespace-nowrap">{{ item.transaction.date }}</td>
+            <td class="py-3 px-6 text-center">{{ item.from_account.title }}</td>
+            <td class="py-3 px-6 text-center">{{ item.to_account.title if item.to_account else '➖' }}</td>
+            <td class="py-3 px-6 text-left">{{ item.category.title }}</td>
+            <td class="py-3 px-6 text-center">{{ item.tag.title if item.tag else '➖' }}</td>
+            <td class="py-3 px-6 text-center">{{ item.transaction.transaction_type.value }}</td>
+            <td class="py-3 px-6 text-center">{{ item.transaction.amount }}</td>
+            <td class="py-3 px-6 text-center">{{ item.transaction.to_amount if item.transaction.to_amount != 0 else '➖' }}</td>
+            <td class="py-3 px-6 text-left w-48 max-w-200 line-clamp-1">{{ item.transaction.description }}</td>
+        </tr>
+        {% endfor %} 
+    </tbody>
+</table>
+{% endblock %}

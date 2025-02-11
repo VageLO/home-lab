@@ -22,14 +22,7 @@ class AccountUpdate(AccountScheme):
     currency: str = Field(default=None, min_length=1, max_length=10)
     balance: Decimal = Field(default=None, decimal_places=2)
 
-@router.get('/list')
-async def list_accounts(
-    db: SessionDep,
-    response: Response,
-):
-    """
-    Return list of all accounts
-    """
+def account_list(db):
     session = db.session
     statement = select(Accounts).order_by(Accounts.title.asc())
     results = session.exec(statement) 
@@ -37,19 +30,9 @@ async def list_accounts(
     
     session.close()
     db.engine.dispose()
-
-    response.status_code = 200
     return accounts
 
-@router.post('/create')
-async def create_account(
-    account: AccountScheme,
-    db: SessionDep,
-    response: Response,
-):
-    """
-    Create an account
-    """
+def account_create(account, db):
     session = db.session
     save_account = Accounts(
         title=account.title, 
@@ -75,17 +58,9 @@ async def create_account(
     session.close()
     db.engine.dispose()
 
-    response.status_code = 201
     return save_account
 
-@router.post('/update')
-async def update_account(
-    account: AccountUpdate,
-    db: SessionDep,
-):
-    """
-    Update data of an account.
-    """
+def account_update(account, db):
     session = db.session
     update_account = session.get(Accounts, account.id)
 
@@ -120,15 +95,7 @@ async def update_account(
 
     return update_account
 
-@router.get('/delete')
-async def delete_account(
-    id: int,
-    db: SessionDep,
-    response: Response,
-):
-    """
-    Delete an account
-    """
+def account_delete(id, db):
     session = db.session
     account = session.get(Accounts, id)
 
@@ -145,5 +112,50 @@ async def delete_account(
     session.close()
     db.engine.dispose()
 
+@router.get('/list')
+async def list_accounts(
+    db: SessionDep,
+    response: Response,
+):
+    """
+    Return list of all accounts
+    """
+    accounts = account_list(db)    
+    response.status_code = 200
+    return accounts
+
+@router.post('/create')
+async def create_account(
+    account: AccountScheme,
+    db: SessionDep,
+    response: Response,
+):
+    """
+    Create an account
+    """
+    save_account = account_create(account, db)
+    response.status_code = 201
+    return save_account
+
+@router.post('/update')
+async def update_account(
+    account: AccountUpdate,
+    db: SessionDep,
+):
+    """
+    Update data of an account.
+    """
+    return account_update(account, db)
+
+@router.get('/delete')
+async def delete_account(
+    id: int,
+    db: SessionDep,
+    response: Response,
+):
+    """
+    Delete an account
+    """
+    account_delete(id, db)
     response.status_code = 204
     return

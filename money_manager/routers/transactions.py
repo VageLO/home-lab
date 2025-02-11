@@ -43,25 +43,14 @@ class TransactionUpdate(TransactionScheme):
     amount: Decimal = Field(default=None, ge=0, decimal_places=2)
     to_amount: Decimal = Field(default=None, ge=0, decimal_places=2)
 
-@router.get('/list')
-async def list_transactions(
-    db: SessionDep,
-    response: Response,
-    account_id: Optional[int] = Query(None, title="list transactions by account"),
-    category_id: Optional[int] = Query(None, title="list transactions by category"),
-    tag_id: Optional[int] = Query(None, title="list transactions by tag"),
-    year: Optional[int] = Query(None, title="list transactions by year"),
-    month: Optional[str] = Query(None, title="list transactions by month"),
+def transaction_list(
+    db,
+    account_id,
+    category_id,
+    tag_id,
+    year,
+    month,
 ):
-    """
-    Return list of transactions:
-        - all
-        - by account_id
-        - by category_id
-        - by tag_id
-        - by month
-        - by year
-    """
     session = db.session
 
     Transaction = aliased(Transactions, name="transaction")
@@ -124,6 +113,35 @@ async def list_transactions(
     session.close()
     db.engine.dispose()
 
+    return transactions
+
+@router.get('/list')
+async def list_transactions(
+    db: SessionDep,
+    response: Response,
+    account_id: Optional[int] = Query(None, title="list transactions by account"),
+    category_id: Optional[int] = Query(None, title="list transactions by category"),
+    tag_id: Optional[int] = Query(None, title="list transactions by tag"),
+    year: Optional[int] = Query(None, title="list transactions by year"),
+    month: Optional[str] = Query(None, title="list transactions by month"),
+):
+    """
+    Return list of transactions:
+        - all
+        - by account_id
+        - by category_id
+        - by tag_id
+        - by month
+        - by year
+    """
+    transactions = transaction_list(
+        db,
+        account_id,
+        category_id,
+        tag_id,
+        year,
+        month,
+    )
     response.status_code = 200
     return transactions
 

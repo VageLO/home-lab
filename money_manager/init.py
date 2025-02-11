@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends
 from .dependencies import check_project_folder
 from .routers import (
+    home_page,
     project,
     account,
     categories,
@@ -14,6 +15,7 @@ setupLogger()
 
 app = FastAPI(dependencies=[Depends(check_project_folder)])
 
+app.include_router(home_page.router)
 app.include_router(project.router)
 app.include_router(account.router)
 app.include_router(categories.router)
