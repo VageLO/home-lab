@@ -1,0 +1,37 @@
+{% extends "basic_index.html" %}
+{% block sidebar %}
+<ul class="space-y-2">
+    {% for project in projects %}
+    <li>
+        <a 
+            onclick="sendPostData(event, '{{ url_for('project_select') }}', '{{project}}')"
+            class="block p-1 dark:hover:text-zinc-900 hover:bg-zinc-200 rounded">
+            {{ project }}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+<script>
+    async function sendPostData(event, url, projectFile) {
+        event.preventDefault();
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: projectFile }),
+            });
+
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                const data = await response.json();
+                console.log('Response:', data);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>
+{% endblock %}

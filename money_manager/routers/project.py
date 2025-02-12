@@ -25,6 +25,19 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+def project_list():
+    folder_path = getenv('PROJECT_FOLDER', abspath('./money_manager/projects'))
+    return [
+        f for f in listdir(folder_path) 
+        if isfile(join(folder_path, f))
+        if splitext(f)[1] == '.db'
+    ]
+
+def project_open(file, response):
+    response.set_cookie(key="project", value=file.filename)
+    response.status_code = 200
+    return response
+
 @router.post('/delete')
 async def delete_project_file(
     file: CheckFileDep, 
@@ -105,12 +118,7 @@ async def get_project_files() -> List[str]:
     """
     Return list of all database files in folder.
     """
-    folder_path = getenv('PROJECT_FOLDER', abspath('./money_manager/projects'))
-    return [
-        f for f in listdir(folder_path) 
-        if isfile(join(folder_path, f))
-        if splitext(f)[1] == '.db'
-    ]
+    return project_list() 
 
 @router.post('/update')
 async def update_project_file(
@@ -157,6 +165,4 @@ async def open_project(
     """
     Sends cookie with selected database file.
     """
-    response.set_cookie(key="project", value=file.filename)
-    response.status_code = 200
-    return response
+    return project_open(file, response)    

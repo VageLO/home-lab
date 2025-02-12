@@ -1,12 +1,48 @@
 {% extends "basic_index.html" %}
 {% block sidebar %}
 <ul class="space-y-2">
+    <hr>
     {% for account in accounts %}
-    <li><a class="block p-2 dark:hover:text-zinc-900 hover:bg-zinc-200 rounded">{{ account.title }}</a></li>
+    <li>
+        {% set is_active = request.query_params.get('account_id') == account.id|string %}
+        {% set params = dict(request.query_params) %}
+        {% if is_active %}
+            {% set _ = params.pop('account_id', None) %}
+        {% else %}
+            {% set params = dict(params, account_id=account.id) %}
+        {% endif %}
+        <a 
+            href="{{url_for('list_by').include_query_params(**params)}}"
+            class="block p-1 dark:hover:text-zinc-900 hover:bg-zinc-200 rounded
+            {% if request.query_params.get('account_id') == account.id|string %} bg-zinc-300 dark:bg-zinc-700 {% endif %}
+            ">
+            {{ account.title }}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+<hr>
+<ul class="space-y-2">
+    {% for category in categories %}
+    <li>
+        {% set is_active = request.query_params.get('category_id') == category.id|string %}
+        {% set params = dict(request.query_params) %}
+        {% if is_active %}
+            {% set _ = params.pop('category_id', None) %}
+        {% else %}
+            {% set params = dict(params, category_id=category.id) %}
+        {% endif %}
+        <a 
+            href="{{url_for('list_by').include_query_params(**params)}}"
+            class="block p-1 dark:hover:text-zinc-900 hover:bg-zinc-200 rounded
+            {% if request.query_params.get('category_id') == category.id|string %} bg-zinc-300 dark:bg-zinc-700 {% endif %}
+            ">
+            {{ category.title }}
+        </a>
+    </li>
     {% endfor %}
 </ul>
 {% endblock %}
-
 {% block content %}
 <table class="min-w-full text-zinc-900 dark:text-white border border-gray-200">
     <thead>

@@ -18,14 +18,7 @@ router = APIRouter(
 class CategoryUpdate(CategoryScheme):
     id: int = Field(primary_key=True)
 
-@router.get('/list')
-async def list_categories(
-    db: SessionDep,
-    response: Response,
-):
-    """
-    Return list of all categories
-    """
+def categories_list(db):
     session = db.session
     statement = select(Categories).order_by(Categories.title.asc())
     results = session.exec(statement) 
@@ -34,8 +27,18 @@ async def list_categories(
     session.close()
     db.engine.dispose()
 
-    response.status_code = 200
     return categories
+
+@router.get('/list')
+async def list_categories(
+    db: SessionDep,
+    response: Response,
+):
+    """
+    Return list of all categories
+    """
+    response.status_code = 200
+    return categories_list(db)
 
 @router.post('/create')
 async def create_category(

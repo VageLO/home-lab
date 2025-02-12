@@ -13,10 +13,12 @@
     <header 
         class="dark:text-slate-200 dark:bg-zinc-900 p-4 flex
             dark:shadow-white justify-between items-center shadow-lg">
-        <div class="text-xl font-bold">Money Manager</div>
+            <a href={{url_for('project_select')}} class="text-xl font-bold">Money Manager</a>
+        {% if project %}
         <div class="flex items-center space-x-4">
             <div>Project: {{project}}</div>
         </div>
+        {% endif %}
         <button 
             id="theme-toggle"
             class="p-2 shadow-zinc-900 w-10 dark:shadow-white shadow-xl rounded">
