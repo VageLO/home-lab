@@ -1,6 +1,9 @@
 {% extends "basic_index.html" %}
 {% block sidebar %}
 <ul class="space-y-2">
+    <li>
+        <a href="{{ url_for('pie') }}">Pie</a>
+    </li>
     <hr>
     {% for account in accounts %}
     <li>
@@ -60,7 +63,9 @@
     </thead>
     <tbody class="dark:text-white text-zinc-900 text-md font-light">
         {% for item in transactions %}
-        <tr class="border-b border-gray-200 dark:hover:text-zinc-900 dark:hover:bg-slate-200 hover:bg-zinc-200">
+        <tr
+            data-item='{{ item | tojson }}'
+            class="row border-b border-gray-200 dark:hover:text-zinc-900 dark:hover:bg-slate-200 hover:bg-zinc-200">
             <td class="py-3 px-6 text-center whitespace-nowrap">{{ item.transaction.date }}</td>
             <td class="py-3 px-6 text-center">{{ item.from_account.title }}</td>
             <td class="py-3 px-6 text-center">{{ item.to_account.title if item.to_account else '➖' }}</td>
@@ -71,7 +76,10 @@
             <td class="py-3 px-6 text-center">{{ item.transaction.to_amount if item.transaction.to_amount != 0 else '➖' }}</td>
             <td class="py-3 px-6 text-left w-48 max-w-200 line-clamp-1">{{ item.transaction.description }}</td>
         </tr>
-        {% endfor %} 
+        {% endfor %}
     </tbody>
 </table>
+<script>
+modal_for_table()
+</script>
 {% endblock %}

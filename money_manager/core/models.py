@@ -5,11 +5,17 @@ from typing import List, Optional
 from pydantic import BaseModel
 from sqlmodel import (
     Field,
-    SQLModel,
+    SQLModel as BaseSQLModel,
     Column,
     Enum,
     Relationship,
 )
+
+class SQLModel(BaseSQLModel):
+    class Config:
+        json_encoders = {
+            Decimal: lambda v: float(v)
+        }
 
 class TransactionStatus(str, enum.Enum):
     Withdrawal = "Withdrawal"

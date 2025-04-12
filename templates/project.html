@@ -4,6 +4,7 @@
     {% for project in projects %}
     <li>
         <a 
+            href=""
             onclick="sendPostData(event, '{{ url_for('project_select') }}', '{{project}}')"
             class="block p-1 dark:hover:text-zinc-900 hover:bg-zinc-200 rounded">
             {{ project }}

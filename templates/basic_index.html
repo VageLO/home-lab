@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Money Manager{% endblock %}</title>
     <link
-        href="{{url_for('static',path='/css/app.css')}}"
+        href="{{url_for('static', path='/css/app.css')}}"
         rel="stylesheet"
     />
+    <script src="{{ url_for('static', path='/js/modal.js') }}"></script>
 </head>
 <body class="flex flex-col min-h-screen bg-gray-100">
     <header 
@@ -40,42 +41,36 @@
                 {% endblock %}
             </nav>
         </aside>
-
+        <div id="myDialog" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div 
+                class="relative bg-white dark:bg-zinc-900 dark:shadow-white 
+                    dark:text-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="modalTitle" class="text-xl font-bold"></h2>
+                    <button id="closeDialog">
+                        <svg class="w-6 h-6 hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div id="modalContent"></div>
+                <div class="relative h-10">
+                    <button 
+                        id="saveButton"
+                        class="absolute bottom-0 left-0 shadow-md dark:shadow-white rounded p-2
+                            hover:bg-gray-300"
+                    >💾</button>
+                    <button 
+                        id="deleteButton"
+                        class="absolute bottom-0 right-0 shadow-md dark:shadow-white rounded p-2
+                            hover:bg-gray-300"
+                    >🗑️</button>
+                </div>
+            </div>
+        </div>
         <main class="flex-1 p-6 dark:bg-zinc-900">
             {% block content %}
             {% endblock %}
         </main>
     </div>
-    <script>
-        const html = document.documentElement;
-        const toggleButton = document.getElementById('theme-toggle');
-
-        function updateButtonText() {
-            if (html.classList.contains('dark')) {
-                toggleButton.textContent = '🌙';
-            } else {
-                toggleButton.textContent = '💡';
-            }
-        }
-
-        // Check for saved theme preference or use light by default
-        if (localStorage.getItem('theme') === 'dark') {
-            html.classList.add('dark');
-        }
-
-        updateButtonText();
-
-        // Toggle theme on button click
-        toggleButton.addEventListener('click', () => {
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            } else {
-                html.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            }
-            updateButtonText()
-        });
-    </script>
+    <script src="{{ url_for('static', path='/js/theme.js') }}"></script>
 </body>
 </html>

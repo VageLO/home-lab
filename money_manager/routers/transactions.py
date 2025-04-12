@@ -45,11 +45,11 @@ class TransactionUpdate(TransactionScheme):
 
 def transaction_list(
     db,
-    account_id,
-    category_id,
-    tag_id,
-    year,
-    month,
+    account_id=None,
+    category_id=None,
+    tag_id=None,
+    year=None,
+    month=None,
 ):
     session = db.session
 
